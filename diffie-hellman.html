@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .valTypePrivate {
+            margin: 3px;
+            padding: 0 5px;
+            background-color: #eee;
+            color: green;
+        }
+
+        .valTypePublic {
+            margin: 3px;
+            padding: 0 5px;
+            background-color: black;
+            color: red;
+        }
+    </style>
+    <title>Diffie-Hellman Key Exchange</title>
+</head>
+<body>
+    <h1>Diffie-Hellman Key Exchange</h1>
+    <p>To explain the Diffie-Hellman key exchange, we will use the users Alice and Bob.</p>
+
+    <h2>Important values:</h2>
+    <ul>
+        <li><span class="valTypePrivate">PRIVATE TO ALICE</span> Alice's Private Key (a) - A randomly generated number that only Alice will ever see. It is secret, uniformly random, and extremely large.</li>
+        <li><span class="valTypePrivate">PRIVATE TO BOB</span> Bob's Private Key (b) - A randomly generated number that only Bob will ever see. It is secret, uniformly random, and extremely large.</li>
+        <li><span class="valTypePublic">PUBLIC</span> The Generator Value (g) - A public value that everyone part of the exchange (including third parties) can see. This value must satisfy <code>1 &lt; g &lt; n</code> and be a generator of the intended subgroup modulo n (it does not need to be prime).</li>
+        <li><span class="valTypePublic">PUBLIC</span> The n Value (n) - A public prime modulus (often written as p) that everyone part of the exchange (including third parties) can see. This value is used as the modulus for all exponentiations in the group, which is important for security. The standard value length is a minimum of 2048 bits.</li>
+        <li><span class="valTypePublic">PUBLIC</span> Alice's Public Key (A) - A public value that everyone part of the exchange (including third parties) can see. This value is the result of a calculation later explained.</li>
+        <li><span class="valTypePublic">PUBLIC</span> Bob's Public Key (B) - A public value that everyone part of the exchange (including third parties) can see. This value is the result of a calculation later explained.</li>
+        <li><span class="valTypePrivate">PRIVATE TO ALICE AND BOB</span> The Shared Secret (S) - A private value that both Alice and Bob calculate independently on their own machines. Both parties will result in the same shared secret at the end of their calculations, which will be later explained. This shared secret is used to derive encryption keys.</li>
+    </ul>
+
+    <h2>Value Calculations:</h2>
+    <ul>
+        <li>
+            <h3>Alice's Private Key & Bob's Private Key</h3>
+            Both end users' private keys are randomly generated numbers produced by a cryptographically secure random number generator (CSPRNG).
+            Modern operating systems gather entropy from unpredictable system events and hardware sources to seed these generators. This makes the
+            private keys effectively unpredictable to attackers.
+        </li>
+        <li>
+            <h3>The Generator Value (g)</h3>
+            This generator value is chosen so it generates the subgroup used for the exchange. In practice, g is derived from the public
+            modulus by picking some <code>h</code> with <code>1 &lt; h &lt; n - 1</code> and computing <code>g = h^j mod n</code>, where
+            <code>j = (n - 1) / q</code> and <code>q</code> is a large prime factor of <code>n - 1</code>. If <code>g = 1</code>, a new
+            <code>h</code> is chosen. This ensures <code>g</code> has order <code>q</code> modulo <code>n</code> (i.e.,
+            <code>g^q mod n = 1</code> but <code>g != 1</code>), so it actually generates the intended group.
+        </li>
+        <li>
+            <h3>The n Value (n)</h3>
+            The n value is the public prime modulus used for every exponentiation. In RFC 2631-style parameters, it is chosen so
+            <code>n = q*j + 1</code> with <code>q</code> also prime, which ensures a large subgroup for the generator <code>g</code>. In many
+            deployments, <code>n</code> is a safe prime, meaning <code>q = (n - 1) / 2</code>. This number must be large enough for security;
+            2048 bits is a common minimum today.
+        </li>
+        <li>
+            <h3>Alice and Bob's Public Key (A and B)</h3>
+            Alice and Bob's public keys are calculated as the first step toward the shared secret. Their formulas are as follows: <br>
+            <code>A = (g^a) mod n</code> <br>
+            <code>B = (g^b) mod n</code> <br>
+            Both of these values will be different but will come together when the shared secret is generated.
+        </li>
+        <li>
+            <h3>Shared Secret (S)</h3>
+            Alice and Bob will compute a final shared secret independently when their public keys are transmitted to each other.
+            This shared secret is used as input to a key derivation function for encryption keys. The calculations are as follows:
+            Alice computes the result of <code>S = (B^a) mod n</code><br>
+            Bob computes the result of <code>S = (A^b) mod n</code><br>
+            When broken down, the values of these calculations result in the same output. That is <code>S = (g^(a*b)) mod n</code>.
+            In essence, it is a combination of Alice's Public Key, Bob's Public Key, Alice's Private Key, and Bob's Private Key.
+        </li>
+    </ul>
+    <h2>Value Scopes:</h2>
+    <ul>
+        <li>
+            Alice has access to the values of: <code>a, g, n, A, B, S</code>
+        </li>
+        <li>
+            Bob has access to the values of: <code>b, g, n, A, B, S</code>
+        </li>
+        <li>
+            Third parties have access to the values of: <code>g, n, A, B</code>
+        </li>
+    </ul>
+    <h2>Important Notes</h2>
+    <ul>
+        <li>Third parties can see the public values but cannot feasibly derive the shared secret without a private key.</li>
+        <li>Many secure protocols use a similar key agreement step (often using elliptic-curve Diffie-Hellman).</li>
+        <li>Although this seems like a complicated process, it is completed in an instant by your machines.</li>
+    </ul>
+</body>
+</html>
